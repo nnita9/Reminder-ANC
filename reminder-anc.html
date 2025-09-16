@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator HPL & Jadwal ANC</title>
+    
+    <!-- Menggunakan Tailwind CSS untuk styling modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Menggunakan Google Fonts untuk tipografi yang lebih baik -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Mengatur font default dan latar belakang gradien yang lembut */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4ff; /* Fallback color */
+            background-image: linear-gradient(135deg, #e0e7ff 0%, #fde4e4 100%);
+        }
+        /* Style untuk input tanggal agar ikon kalender terlihat jelas */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 space-y-6 transform transition-all hover:shadow-2xl">
+        <!-- Header Aplikasi -->
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-gray-800">Kalkulator Kehamilan</h1>
+            <p class="text-gray-500 mt-2">Hitung HPL & Jadwal Kunjungan ANC Anda</p>
+        </div>
+
+        <!-- Form Input -->
+        <form id="hplForm" class="space-y-6">
+            <div>
+                <label for="namaIbu" class="block text-sm font-medium text-gray-700">Nama Ibu Hamil</label>
+                <input type="text" id="namaIbu" name="namaIbu" required placeholder="Contoh: Budianti"
+                       class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition">
+            </div>
+            <div>
+                <label for="hpht" class="block text-sm font-medium text-gray-700">Hari Pertama Haid Terakhir (HPHT)</label>
+                <input type="date" id="hpht" name="hpht" required
+                       class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition">
+            </div>
+            <div>
+                <button type="submit"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105 disabled:bg-indigo-400 disabled:cursor-not-allowed">
+                    Hitung & Simpan
+                </button>
+            </div>
+        </form>
+
+        <!-- Elemen untuk menampilkan pesan status (error, success) -->
+        <div id="status-message" class="hidden text-center text-sm p-3 rounded-md"></div>
+
+        <!-- Area Hasil Perhitungan (Awalnya disembunyikan) -->
+        <div id="hasil" class="hidden pt-6 border-t border-gray-200 space-y-6">
+            <h2 class="text-2xl font-semibold text-center text-gray-800">Hasil Perhitungan</h2>
+            
+            <div class="bg-indigo-50 p-4 rounded-lg text-center">
+                <p class="text-sm text-indigo-800">Nama Ibu:</p>
+                <p id="outputNama" class="text-xl font-bold text-indigo-900"></p>
+            </div>
+
+            <div class="bg-pink-50 p-6 rounded-lg text-center shadow-inner">
+                <p class="text-md text-pink-800">Hari Perkiraan Lahir (HPL) Anda adalah:</p>
+                <p id="outputHpl" class="text-3xl font-bold text-pink-900 mt-2"></p>
+                <p id="usiaKehamilan" class="text-sm text-gray-600 mt-2"></p>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Jadwal Kunjungan ANC</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center bg-gray-50 p-3 rounded-md">
+                        <div class="flex-shrink-0 bg-blue-500 text-white rounded-full h-8 w-8 flex items-center justify-center font-bold">I</div>
+                        <div class="ml-4">
+                            <p class="font-semibold text-gray-700">Trimester I (1x)</p>
+                            <p id="anc1" class="text-sm text-gray-600">Perkiraan tanggal:</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center bg-gray-50 p-3 rounded-md">
+                        <div class="flex-shrink-0 bg-green-500 text-white rounded-full h-8 w-8 flex items-center justify-center font-bold">II</div>
+                        <div class="ml-4">
+                            <p class="font-semibold text-gray-700">Trimester II (1x)</p>
+                            <p id="anc2" class="text-sm text-gray-600">Perkiraan tanggal:</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center bg-gray-50 p-3 rounded-md">
+                        <div class="flex-shrink-0 bg-yellow-500 text-white rounded-full h-8 w-8 flex items-center justify-center font-bold">III</div>
+                        <div class="ml-4">
+                            <p class="font-semibold text-gray-700">Trimester III (Kunjungan ke-1)</p>
+                            <p id="anc3" class="text-sm text-gray-600">Perkiraan tanggal:</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center bg-gray-50 p-3 rounded-md">
+                        <div class="flex-shrink-0 bg-red-500 text-white rounded-full h-8 w-8 flex items-center justify-center font-bold">III</div>
+                        <div class="ml-4">
+                            <p class="font-semibold text-gray-700">Trimester III (Kunjungan ke-2)</p>
+                            <p id="anc4" class="text-sm text-gray-600">Perkiraan tanggal:</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <p class="text-xs text-gray-500 text-center mt-4">
+                * Jadwal ini adalah perkiraan untuk memantau kehamilan. Selalu konsultasikan dengan dokter atau bidan Anda untuk jadwal yang paling sesuai.
+            </p>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import modul-modul Firebase yang diperlukan
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- INISIALISASI FIREBASE ---
+        let db, auth;
+        let userId = null;
+        
+        // =================================================================================
+        // TODO: GANTI DENGAN KONFIGURASI FIREBASE PROYEK ANDA
+        // Salin konfigurasi dari Firebase Console Anda dan tempel di sini.
+        // =================================================================================
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyC0CT4ekwLCaFTDsF4mVD2RcgXIKbZkRlI",
+  authDomain: "anc-app-157b1.firebaseapp.com",
+  projectId: "anc-app-157b1",
+  storageBucket: "anc-app-157b1.firebasestorage.app",
+  messagingSenderId: "130630086306",
+  appId: "1:130630086306:web:43196b389be32412d831fb",
+  measurementId: "G-9PF2NYZ9M6"
+};
+        
+        const statusMessage = document.getElementById('status-message');
+        const submitButton = document.querySelector('#hplForm button[type="submit"]');
+
+        // Validasi konfigurasi sebelum mencoba inisialisasi Firebase
+        if (!firebaseConfig || firebaseConfig.apiKey === "GANTI_DENGAN_API_KEY_ANDA" || !firebaseConfig.apiKey) {
+            console.error("Konfigurasi Firebase tidak valid atau masih menggunakan placeholder.");
+            statusMessage.textContent = 'Konfigurasi Firebase tidak ditemukan. Harap salin-tempel (copy-paste) konfigurasi dari Firebase Console Anda ke dalam kode file ini.';
+            statusMessage.className = 'text-center text-sm p-3 rounded-md bg-red-100 text-red-700';
+            statusMessage.classList.remove('hidden');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Konfigurasi Diperlukan';
+        } else {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setLogLevel('debug'); // Aktifkan log untuk debugging
+
+                // Proses otentikasi pengguna
+                onAuthStateChanged(auth, async (user) => {
+                    if (!user) {
+                        try {
+                            // Cukup login secara anonim untuk penggunaan lokal
+                            await signInAnonymously(auth);
+                        } catch (authError) {
+                            console.error("Authentication failed:", authError);
+                            statusMessage.textContent = 'Gagal melakukan otentikasi. Pastikan API Key Anda valid dan Auth diaktifkan.';
+                            statusMessage.className = 'text-center text-sm p-3 rounded-md bg-red-100 text-red-700';
+                            statusMessage.classList.remove('hidden');
+                        }
+                    } else {
+                        userId = user.uid;
+                        console.log("User terautentikasi dengan UID:", userId);
+                    }
+                });
+
+            } catch (error) {
+                console.error("Inisialisasi Firebase gagal:", error);
+                statusMessage.textContent = 'Gagal terhubung ke server. Pastikan konfigurasi Firebase sudah benar.';
+                statusMessage.className = 'text-center text-sm p-3 rounded-md bg-red-100 text-red-700';
+                statusMessage.classList.remove('hidden');
+            }
+        }
+
+        // --- LOGIKA APLIKASI ---
+        const hplForm = document.getElementById('hplForm');
+        const hasilDiv = document.getElementById('hasil');
+        const outputNama = document.getElementById('outputNama');
+        const outputHpl = document.getElementById('outputHpl');
+        const usiaKehamilan = document.getElementById('usiaKehamilan');
+
+        function formatTanggal(date) {
+            return date.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function tambahHari(tanggal, jumlahHari) {
+            const result = new Date(tanggal);
+            result.setDate(result.getDate() + jumlahHari);
+            return result;
+        }
+
+        hplForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const namaIbu = document.getElementById('namaIbu').value;
+            const hphtString = document.getElementById('hpht').value;
+            
+            if (!namaIbu || !hphtString) {
+                statusMessage.textContent = 'Mohon lengkapi semua data.';
+                statusMessage.className = 'text-center text-sm p-3 rounded-md bg-yellow-100 text-yellow-700';
+                statusMessage.classList.remove('hidden');
+                return;
+            }
+            statusMessage.classList.add('hidden'); // Sembunyikan pesan jika valid
+
+            const hphtDate = new Date(hphtString);
+            const hplDate = tambahHari(hphtDate, 280);
+            const today = new Date();
+            const diffTime = Math.abs(today - hphtDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const minggu = Math.floor(diffDays / 7);
+            const hari = diffDays % 7;
+            const anc1Date = tambahHari(hphtDate, 12 * 7);
+            const anc2Date = tambahHari(hphtDate, 24 * 7);
+            const anc3Date = tambahHari(hphtDate, 32 * 7);
+            const anc4Date = tambahHari(hphtDate, 36 * 7);
+
+            outputNama.textContent = namaIbu;
+            outputHpl.textContent = formatTanggal(hplDate);
+            usiaKehamilan.textContent = `Perkiraan usia kehamilan saat ini: ${minggu} minggu ${hari} hari.`;
+            document.getElementById('anc1').textContent = `Perkiraan: ${formatTanggal(anc1Date)}`;
+            document.getElementById('anc2').textContent = `Perkiraan: ${formatTanggal(anc2Date)}`;
+            document.getElementById('anc3').textContent = `Perkiraan: ${formatTanggal(anc3Date)}`;
+            document.getElementById('anc4').textContent = `Perkiraan: ${formatTanggal(anc4Date)}`;
+            hasilDiv.classList.remove('hidden');
+
+            // --- SIMPAN DATA KE FIRESTORE ---
+            if (db && userId) {
+                const originalButtonText = "Hitung & Simpan";
+                submitButton.disabled = true;
+                submitButton.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Menyimpan...`;
+
+                const dataToSave = {
+                    userId: userId,
+                    namaIbu: namaIbu,
+                    hpht: hphtString,
+                    hpl: formatTanggal(hplDate),
+                    usiaKehamilanSaatDihitung: `${minggu} minggu ${hari} hari`,
+                    jadwalAnc: {
+                        trimester1: formatTanggal(anc1Date),
+                        trimester2: formatTanggal(anc2Date),
+                        trimester3_1: formatTanggal(anc3Date),
+                        trimester3_2: formatTanggal(anc4Date),
+                    },
+                    dibuatPada: serverTimestamp()
+                };
+
+                try {
+                    const collectionPath = `perhitungan_hpl`;
+                    const docRef = await addDoc(collection(db, collectionPath), dataToSave);
+                    console.log("Dokumen berhasil ditulis dengan ID: ", docRef.id);
+                    statusMessage.textContent = 'Data berhasil disimpan ke database.';
+                    statusMessage.className = 'text-center text-sm p-3 rounded-md bg-green-100 text-green-700';
+                    statusMessage.classList.remove('hidden');
+                } catch (e) {
+                    console.error("Error saat menambahkan dokumen: ", e);
+                    statusMessage.textContent = 'Gagal menyimpan data. Cek aturan keamanan (Rules) Firestore Anda.';
+                    statusMessage.className = 'text-center text-sm p-3 rounded-md bg-red-100 text-red-700';
+                    statusMessage.classList.remove('hidden');
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonText;
+                }
+            } else {
+                 console.warn("Koneksi Firebase tidak siap, data tidak disimpan.");
+                 statusMessage.textContent = 'Koneksi database tidak siap, data tidak disimpan.';
+                 statusMessage.className = 'text-center text-sm p-3 rounded-md bg-yellow-100 text-yellow-700';
+                 statusMessage.classList.remove('hidden');
+            }
+        });
+    </script>
+
+</body>
+</html>
+
